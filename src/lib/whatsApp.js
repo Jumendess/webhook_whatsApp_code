@@ -156,8 +156,6 @@ class WhatsApp {
               userId: userId,
               messagePayload: {
                 'type': 'postback',
-                 'body': {
-                    'text': 'Escolha uma opção'},
                 'postback': {
                   'action': interactive.list_reply.id
                 }
