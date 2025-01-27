@@ -38,7 +38,7 @@ app.use(function(req, res, next) {
 const staticPath = path.join(__dirname, '../downloads');
 app.use(express.static(staticPath));
 
-app.get('/', (req, res) => res.send('Oracle Digital Assistant for WhatsApp app is running.'));
+app.get('/', (req, res) => res.send('Oracle Digital Assistant Webhook rodando.'));
 
 // Endpoint for verifying the webhook
 app.get('/user/message', (req, res) => {
