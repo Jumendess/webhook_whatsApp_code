@@ -10,10 +10,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/leobarros79/ODAWhatsAppIntegration.git"
+    "url": "https://github.com/Jumendess/webhook_whatsApp_code"
   },
-  "author": "leo.barros@oracle.com",
-  "license": "ISC",
+  "author": "Julio Mendes",
+  "license": "MIT",
   "dependencies": {
     "@oracle/bots-node-sdk": "^2.6.1",
     "axios": "^0.26.1",
