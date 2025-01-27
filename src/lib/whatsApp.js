@@ -157,7 +157,6 @@ class WhatsApp {
               messagePayload: {
                 'type': 'postback',
                 'postback': {
-                  'text': 'Escolha uma opção',
                   'action': interactive.list_reply.id
                 }
               },
