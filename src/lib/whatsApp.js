@@ -135,13 +135,55 @@ class WhatsApp {
         let odaMessage = {};
 
         switch (interactive.type) {
-            case 'button_reply':
+          case 'button_reply':
+            odaMessage = {
+              userId: userId,
+              messagePayload: {
+                'type': 'postback',
+                'postback': {
+                  'action': interactive.button_reply.id
+                }
+              },
+              profile: {
+                'whatsAppNumber': userId,
+                'contactName': contactName
+              }
+            };
+            break;
+
+          case 'list_reply':
+            // Verifica se o número de ações (opções) é maior que 3
+            if (interactive.list_reply.actions && interactive.list_reply.actions.length > 3) {
               odaMessage = {
                 userId: userId,
                 messagePayload: {
-                  'type': 'postback',
-                  'postback': {
-                    'action': interactive.button_reply.id
+                  'type': 'interactive',
+                  'interactive': {
+                    'type': 'list',
+                    'action': {
+                      'button': {
+                        'text': "Selecione uma opção"
+                      },
+                      'sections': [{
+                        'title': '',
+                        'rows': interactive.list_reply.actions.map((action) => {
+                          const titleParts = action.label.split(" - ");
+                          const titleToShow = titleParts.length > 1 ? titleParts[1] : titleParts[0];
+                          let shortenedTitle =
+                            titleToShow.length === 24
+                              ? titleToShow.slice(0, -3) + "..."
+                              : titleToShow;
+                          if (shortenedTitle.length >= 24) {
+                            shortenedTitle = action.label.split(" ")[0];
+                          }
+
+                          return {
+                            'title': shortenedTitle,
+                            'id': action.id
+                          };
+                        })
+                      }]
+                    }
                   }
                 },
                 profile: {
@@ -149,9 +191,8 @@ class WhatsApp {
                   'contactName': contactName
                 }
               };
-              break;
-
-            case 'list_reply':
+            } else {
+              // Caso tenha 3 ou menos opções, o comportamento padrão
               odaMessage = {
                 userId: userId,
                 messagePayload: {
@@ -165,21 +206,19 @@ class WhatsApp {
                   'contactName': contactName
                 }
               };
+            }
+            break;
 
-              // Adicionando a opção "Escolha uma opção" ao conteúdo da lista
-              odaMessage.messagePayload.text = "Escolha uma opção"; // Este campo vai ser a mensagem para o usuário
+          default:
+            // Unsupported interactive message type
+            console.error('Unsupported interactive message type:', interactive.type);
+            break;
+        }
 
-              break;
+        return odaMessage;
+      }
 
-            default:
-              // Unsupported interactive message type
-              console.error('Unsupported interactive message type:', interactive.type);
-              break;
-          }
 
-          return odaMessage;
-
-    }
 
     /**
     * Process text message from WhatsApp and convert to ODA message format.
