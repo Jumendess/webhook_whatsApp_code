@@ -135,44 +135,50 @@ class WhatsApp {
         let odaMessage = {};
 
         switch (interactive.type) {
-          case 'button_reply':
-            odaMessage = {
-              userId: userId,
-              messagePayload: {
-                'type': 'postback',
-                'postback': {
-                  'action': interactive.button_reply.id
+            case 'button_reply':
+              odaMessage = {
+                userId: userId,
+                messagePayload: {
+                  'type': 'postback',
+                  'postback': {
+                    'action': interactive.button_reply.id
+                  }
+                },
+                profile: {
+                  'whatsAppNumber': userId,
+                  'contactName': contactName
                 }
-              },
-              profile: {
-                'whatsAppNumber': userId,
-                'contactName': contactName
-              }
-            };
-            break;
+              };
+              break;
 
-          case 'list_reply':
-            odaMessage = {
-              userId: userId,
-              messagePayload: {
-                'type': 'postback',
-                'postback': {
-                  'action': interactive.list_reply.id
+            case 'list_reply':
+              odaMessage = {
+                userId: userId,
+                messagePayload: {
+                  'type': 'postback',
+                  'postback': {
+                    'action': interactive.list_reply.id
+                  }
+                },
+                profile: {
+                  'whatsAppNumber': userId,
+                  'contactName': contactName
                 }
-              },
-              profile: {
-                'whatsAppNumber': userId,
-                'contactName': contactName
-              }
-            };
-            break;
+              };
 
-          default:
-            // Unsupported interactive message type
-            console.error('Unsupported interactive message type:', interactive.type);
-            break;
-        }
-        return odaMessage;
+              // Adicionando a opção "Escolha uma opção" ao conteúdo da lista
+              odaMessage.messagePayload.text = "Escolha uma opção"; // Este campo vai ser a mensagem para o usuário
+
+              break;
+
+            default:
+              // Unsupported interactive message type
+              console.error('Unsupported interactive message type:', interactive.type);
+              break;
+          }
+
+          return odaMessage;
+
     }
 
     /**
