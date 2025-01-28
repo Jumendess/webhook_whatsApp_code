@@ -150,7 +150,7 @@ class WhatsAppSender {
             await attachmentResponse.data.pipe(fs.createWriteStream(localFilePath));
 
             // Send file to WebDAV server
-            const webDAVUrl = process.env.ODA_WEBHOOK_URL // URL de upload configurada no .env
+            const webDAVUrl = process.env.ODA_UPLOAD_URL; // URL de upload configurada no .env
             const credentials = {
                 username: process.env.WEB_DAV_USERNAME,
                 password: process.env.WEB_DAV_PASSWORD
