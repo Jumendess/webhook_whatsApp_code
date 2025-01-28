@@ -170,7 +170,10 @@ class WhatsAppSender {
             });
 
             console.log(`Arquivo salvo com sucesso em: ${filePath}`);
-            return fileName;
+
+            // Constroi a URL pública do arquivo para retornar ao ODA
+            const publicUrl = `${process.env.SERVER_URL || 'http://localhost:3000'}/downloads/${fileName}`;
+            return publicUrl;
         } catch (error) {
             console.error('Erro ao baixar e salvar o anexo:', error);
             return null;
