@@ -447,7 +447,7 @@ class WhatsApp {
         data.interactive = {
             type: 'list',
             body: { text: messagePayload.text },
-            action: { button: Config.LIST_TITLE_DEFAULT_LABEL, sections: [] } //max 20 chars
+            action: { button: "Escolha uma opção", sections: [] } //max 20 chars
         };
 
         let rows = [];
