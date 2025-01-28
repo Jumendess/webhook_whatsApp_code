@@ -152,61 +152,19 @@ class WhatsApp {
             break;
 
           case 'list_reply':
-            // Verifica se o número de ações (opções) é maior que 3
-            if (interactive.list_reply.actions && interactive.list_reply.actions.length > 3) {
-              odaMessage = {
-                userId: userId,
-                messagePayload: {
-                  'type': 'interactive',
-                  'interactive': {
-                    'type': 'list',
-                    'action': {
-                      'button': {
-                        'text': "Selecione uma opção"
-                      },
-                      'sections': [{
-                        'title': '',
-                        'rows': interactive.list_reply.actions.map((action) => {
-                          const titleParts = action.label.split(" - ");
-                          const titleToShow = titleParts.length > 1 ? titleParts[1] : titleParts[0];
-                          let shortenedTitle =
-                            titleToShow.length === 24
-                              ? titleToShow.slice(0, -3) + "..."
-                              : titleToShow;
-                          if (shortenedTitle.length >= 24) {
-                            shortenedTitle = action.label.split(" ")[0];
-                          }
-
-                          return {
-                            'title': shortenedTitle,
-                            'id': action.id
-                          };
-                        })
-                      }]
-                    }
-                  }
-                },
-                profile: {
-                  'whatsAppNumber': userId,
-                  'contactName': contactName
+            odaMessage = {
+              userId: userId,
+              messagePayload: {
+                'type': 'postback',
+                'postback': {
+                  'action': interactive.list_reply.id
                 }
-              };
-            } else {
-              // Caso tenha 3 ou menos opções, o comportamento padrão
-              odaMessage = {
-                userId: userId,
-                messagePayload: {
-                  'type': 'postback',
-                  'postback': {
-                    'action': interactive.list_reply.id
-                  }
-                },
-                profile: {
-                  'whatsAppNumber': userId,
-                  'contactName': contactName
-                }
-              };
-            }
+              },
+              profile: {
+                'whatsAppNumber': userId,
+                'contactName': contactName
+              }
+            };
             break;
 
           default:
@@ -214,11 +172,8 @@ class WhatsApp {
             console.error('Unsupported interactive message type:', interactive.type);
             break;
         }
-
         return odaMessage;
-      }
-
-
+    }
 
     /**
     * Process text message from WhatsApp and convert to ODA message format.
