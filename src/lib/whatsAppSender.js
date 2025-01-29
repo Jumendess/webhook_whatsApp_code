@@ -122,31 +122,31 @@ class WhatsAppSender {
             let self = this;
             const config = {
                 method: "get",
-                url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/` + attachment.id,
+                url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/${attachment.id}`,
                 headers: {
                     Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                data: ''
             };
+
+            // Faz a requisição para obter a URL do anexo diretamente do WhatsApp
             const response = await axios.request(config);
-            const attachmentResponse = await axios({
-                method: "get",
-                url: response.data.url,
-                headers: {
-                    Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                responseType: "stream"
-            });
-            const fileName = 'file_'.concat(Date.now()).concat('.').concat(mime.extension(attachment.mime_type));
-            await attachmentResponse.data.pipe(fs.createWriteStream(path.join(__dirname, '../../downloads/').concat(fileName)));
-            return fileName;
+
+            if (!response.data.url) {
+                console.error("URL do anexo não encontrada!");
+                return null;
+            }
+
+            console.log(`URL do anexo obtida: ${response.data.url}`);
+
+            // Retorna a URL direta do anexo para o ODA
+            return response.data.url;
         } catch (error) {
-            console.log(error);
+            console.error("Erro ao obter a URL do anexo:", error);
             return null;
         }
     }
+
 
 }
 module.exports = WhatsAppSender;
