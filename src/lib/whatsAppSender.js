@@ -160,7 +160,7 @@ class WhatsAppSender {
             console.log(`Arquivo salvo em: ${filePath}`);
 
             // 5️⃣ Retornar o link público do arquivo
-            return `${Config.FILES_URL.replace(/\/$/, '')}/uploads/${fileName}`
+            return `${Config.FILES_URL.replace(/\/$/, '')}/uploads/${fileName}`;
         } catch (error) {
             console.error("Erro ao baixar o anexo:", error);
             return null;
