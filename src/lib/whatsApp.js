@@ -211,7 +211,7 @@ class WhatsApp {
     async _createAttachmentMessage(userId, contactName, attachment, type) {
         let self = this;
         let file = await self.whatsAppSender._downloadAndSaveWhatsAppAttachmentMessage(attachment);
-        let fileUrl = `${Config.FILES_URL}/${file}`;
+        let fileUrl = file;
         let odaMessage = {};
 
         // Mensagem que será enviada ao agente ao vivo
