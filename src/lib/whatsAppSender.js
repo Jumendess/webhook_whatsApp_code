@@ -119,65 +119,34 @@ class WhatsAppSender {
     */
     async _downloadAndSaveWhatsAppAttachmentMessage(attachment) {
         try {
-            // Configurações iniciais
             let self = this;
             const config = {
                 method: "get",
-                url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/${attachment.id}`,
+                url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/` + attachment.id,
                 headers: {
                     Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
+                data: ''
             };
-
-            // Faz a requisição para obter a URL do anexo
             const response = await axios.request(config);
-
-            // Faz a requisição para baixar o anexo como stream
             const attachmentResponse = await axios({
                 method: "get",
                 url: response.data.url,
                 headers: {
                     Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                responseType: "stream",
+                responseType: "stream"
             });
-
-            // Define o nome do arquivo
-            const fileName = `file_${Date.now()}.${mime.extension(attachment.mime_type)}`;
-
-            // Define o caminho da pasta downloads (relativo ao diretório atual)
-            const downloadsFolder = path.join(__dirname, '../../downloads');
-
-            // Verifica e cria a pasta de downloads, se não existir
-            if (!fs.existsSync(downloadsFolder)) {
-                fs.mkdirSync(downloadsFolder, { recursive: true });
-                console.log('Pasta de downloads criada:', downloadsFolder);
-            }
-
-            // Define o caminho completo do arquivo
-            const filePath = path.join(downloadsFolder, fileName);
-
-            // Salva o arquivo no disco
-            const writer = fs.createWriteStream(filePath);
-            attachmentResponse.data.pipe(writer);
-
-            // Retorna uma Promise para garantir que o stream foi finalizado
-            await new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
-
-            console.log(`Arquivo salvo com sucesso em: ${filePath}`);
-
-            // Constroi a URL pública do arquivo para retornar ao ODA
-            const publicUrl = `${process.env.SERVER_URL || 'http://localhost:3000'}/downloads/${fileName}`;
-            return publicUrl;
+            const fileName = 'file_'.concat(Date.now()).concat('.').concat(mime.extension(attachment.mime_type));
+            await attachmentResponse.data.pipe(fs.createWriteStream(path.join(__dirname, '../../downloads/').concat(fileName)));
+            return fileName;
         } catch (error) {
-            console.error('Erro ao baixar e salvar o anexo:', error);
+            console.log(error);
             return null;
         }
     }
+
 }
 module.exports = WhatsAppSender;
