@@ -5,6 +5,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const mime = require('mime-to-extensions');
+const mime = require('mime-types');
 let logger = log4js.getLogger('WhatsAppSender');
 logger.level = Config.LOG_LEVEL;
 
@@ -117,56 +118,58 @@ class WhatsAppSender {
     * @returns {string} fileName - file name
     * @param {string} attachment - WhatsApp attachment information
     */
-    async _downloadAndSaveWhatsAppAttachmentMessage(attachment) {
-        try {
-            let self = this;
+     // Certifique-se de importar mime-types corretamente
 
-            // 1️⃣ Obter a URL do anexo com autenticação
-            const config = {
-                method: "get",
-                url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/${attachment.id}`,
-                headers: {
-                    Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json',
-                },
-            };
+async _downloadAndSaveWhatsAppAttachmentMessage(attachment) {
+    try {
+        let self = this;
 
-            const response = await axios.request(config);
+        // 1️⃣ Obter a URL do anexo com autenticação
+        const config = {
+            method: "get",
+            url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/${attachment.id}`,
+            headers: {
+                Authorization: `Bearer ${self.whatsAppAccessToken}`,
+                'Content-Type': 'application/json',
+            },
+        };
 
-            if (!response.data.url) {
-                console.error("URL do anexo não encontrada!");
-                return null;
-            }
+        const response = await axios.request(config);
 
-            const attachmentUrl = response.data.url;
-
-            // 2️⃣ Baixar o arquivo real do WhatsApp
-            const fileResponse = await axios({
-                method: "get",
-                url: attachmentUrl,
-                headers: {
-                    Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                },
-                responseType: "arraybuffer",
-            });
-
-            // 3️⃣ Obter a extensão correta do arquivo
-            const contentType = fileResponse.headers['content-type'];
-            const fileExtension = mime[contentType] || 'bin'; // Usa 'bin' se não encontrar a extensão
-            const fileName = `whatsapp_${Date.now()}.${fileExtension}`;
-            const filePath = path.join(__dirname, "../../public/uploads", fileName);
-
-            // 4️⃣ Salvar o arquivo localmente
-            fs.writeFileSync(filePath, fileResponse.data);
-
-            console.log(`Arquivo salvo em: ${filePath}`);
-
-            // 5️⃣ Retornar o link público do arquivo
-            return `${Config.FILES_URL.replace(/\/$/, '')}/uploads/${fileName}`;
-        } catch (error) {
-            console.error("Erro ao baixar o anexo:", error);
+        if (!response.data.url) {
+            console.error("URL do anexo não encontrada!");
             return null;
         }
+
+        const attachmentUrl = response.data.url;
+
+        // 2️⃣ Baixar o arquivo real do WhatsApp
+        const fileResponse = await axios({
+            method: "get",
+            url: attachmentUrl,
+            headers: {
+                Authorization: `Bearer ${self.whatsAppAccessToken}`,
+            },
+            responseType: "arraybuffer",
+        });
+
+        // 3️⃣ Obter a extensão correta do arquivo
+        const contentType = fileResponse.headers['content-type'];
+        const fileExtension = mime.extension(contentType) || 'bin'; // Usa 'bin' se não encontrar a extensão
+        const fileName = `whatsapp_${Date.now()}.${fileExtension}`;
+        const filePath = path.join(__dirname, "../../public/uploads", fileName);
+
+        // 4️⃣ Salvar o arquivo localmente
+        fs.writeFileSync(filePath, fileResponse.data);
+
+        console.log(`Arquivo salvo em: ${filePath}`);
+
+        // 5️⃣ Retornar o link público do arquivo
+        return `${Config.FILES_URL.replace(/\/$/, '')}/uploads/${fileName}`;
+    } catch (error) {
+        console.error("Erro ao baixar o anexo:", error);
+        return null;
+    }
     }
 
 
