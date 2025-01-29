@@ -150,8 +150,10 @@ class WhatsAppSender {
                 responseType: "arraybuffer",
             });
 
-            // 3️⃣ Definir caminho e nome do arquivo
-            const fileName = `whatsapp_${Date.now()}.jpg`;  // Ajuste para outros formatos se necessário
+            // 3️⃣ Obter a extensão correta do arquivo
+            const contentType = fileResponse.headers['content-type'];
+            const fileExtension = mime[contentType] || 'bin'; // Usa 'bin' se não encontrar a extensão
+            const fileName = `whatsapp_${Date.now()}.${fileExtension}`;
             const filePath = path.join(__dirname, "../../public/uploads", fileName);
 
             // 4️⃣ Salvar o arquivo localmente
@@ -166,6 +168,7 @@ class WhatsAppSender {
             return null;
         }
     }
+
 
 
 }
