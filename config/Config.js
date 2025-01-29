@@ -13,9 +13,8 @@ exports.LIST_TITLE_DEFAULT_LABEL = 'Select one';
 
 // General Detail
 exports.port = process.env.port || 3000;
-exports.FILES_URL = ''; //your app server url
-exports.LOG_LEVEL = 'info'
-
+exports.FILES_URL = process.env.FILES_URL || 'https://webhook-whatsapp-code.onrender.com'; // Defina seu URL do servidor Render aqui
+exports.LOG_LEVEL = 'info';
 
 // WhatsApp Sender event IDs
 exports.EVENT_QUEUE_MESSAGE_TO_WHATSAPP = "100";
