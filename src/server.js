@@ -37,8 +37,8 @@ app.use(function(req, res, next) {
 });
 
 // Static file serving (uploads)
-const staticPath = path.join(__dirname, '..', 'public', 'uploads');
-app.use(express.static(staticPath));
+const staticPath = path.resolve('public', 'uploads');
+app.use('/uploads', express.static(staticPath));
 
 app.get('/', (req, res) => res.send('Oracle Digital Assistant Webhook rodando.'));
 
