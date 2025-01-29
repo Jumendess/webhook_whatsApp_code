@@ -120,6 +120,8 @@ class WhatsAppSender {
     async _downloadAndSaveWhatsAppAttachmentMessage(attachment) {
         try {
             let self = this;
+
+            // 1️⃣ Obter a URL do anexo com autenticação
             const config = {
                 method: "get",
                 url: `${self.whatsAppApiUrl}/${self.whatsAppApiVersion}/${attachment.id}`,
@@ -129,7 +131,6 @@ class WhatsAppSender {
                 },
             };
 
-            // Faz a requisição para obter a URL do anexo diretamente do WhatsApp
             const response = await axios.request(config);
 
             if (!response.data.url) {
@@ -137,12 +138,31 @@ class WhatsAppSender {
                 return null;
             }
 
-            console.log(`URL do anexo obtida: ${response.data.url}`);
+            const attachmentUrl = response.data.url;
 
-            // Retorna a URL direta do anexo para o ODA
-            return response.data.url;
+            // 2️⃣ Baixar o arquivo real do WhatsApp
+            const fileResponse = await axios({
+                method: "get",
+                url: attachmentUrl,
+                headers: {
+                    Authorization: `Bearer ${self.whatsAppAccessToken}`,
+                },
+                responseType: "arraybuffer",
+            });
+
+            // 3️⃣ Definir caminho e nome do arquivo
+            const fileName = `whatsapp_${Date.now()}.jpg`;  // Ajuste para outros formatos se necessário
+            const filePath = path.join(__dirname, "../../public/uploads", fileName);
+
+            // 4️⃣ Salvar o arquivo localmente
+            fs.writeFileSync(filePath, fileResponse.data);
+
+            console.log(`Arquivo salvo em: ${filePath}`);
+
+            // 5️⃣ Retornar o link público do arquivo
+            return `${Config.FILES_URL}/uploads/${fileName}`;
         } catch (error) {
-            console.error("Erro ao obter a URL do anexo:", error);
+            console.error("Erro ao baixar o anexo:", error);
             return null;
         }
     }
