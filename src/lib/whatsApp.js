@@ -211,81 +211,72 @@ class WhatsApp {
     async _createAttachmentMessage(userId, contactName, attachment, type) {
         let self = this;
         let file = await self.whatsAppSender._downloadAndSaveWhatsAppAttachmentMessage(attachment);
+        let fileUrl = `${Config.FILES_URL}/${file}`;
         let odaMessage = {};
 
+        // Mensagem que será enviada ao agente ao vivo
+        let messageText = `📎 O usuário enviou um ${type}. Você pode acessá-lo aqui: ${fileUrl}`;
+
         switch (type) {
-          case 'audio':
-            odaMessage = {
-              userId: userId,
-              messagePayload: {
-                'type': 'attachment',
-                'attachment': {
-                    'type': 'audio',
-                    'url': Config.FILES_URL + '/' + file
-                }
-              },
-              profile: {
-                'whatsAppNumber': userId,
-                'contactName': contactName
-              }
-            };
-            break;
-
-          case 'image':
-            odaMessage = {
-              userId: userId,
-              messagePayload: {
-                'type': 'attachment',
-                'attachment': {
-                    'type': 'image',
-                    'url': Config.FILES_URL + '/' + file
-                }
-              },
-              profile: {
-                'whatsAppNumber': userId,
-                'contactName': contactName
-              }
-            };
-            break;
-
-          case 'video':
-            odaMessage = {
-                userId: userId,
-                messagePayload: {
-                    'type': 'attachment',
-                    'attachment': {
-                        'type': 'video',
-                        'url': Config.FILES_URL + '/' + file
+            case 'audio':
+                odaMessage = {
+                    userId: userId,
+                    messagePayload: {
+                        'type': 'text',  // Alterado para texto para garantir que o agente receba
+                        'text': messageText
+                    },
+                    profile: {
+                        'whatsAppNumber': userId,
+                        'contactName': contactName
                     }
-                },
-                profile: {
-                    'whatsAppNumber': userId,
-                    'contactName': contactName
-                }
-            };
-            break;
+                };
+                break;
 
-          case 'document':
-            odaMessage = {
-                userId: userId,
-                messagePayload: {
-                    'type': 'attachment',
-                    'attachment': {
-                        'type': 'file',
-                        'url': Config.FILES_URL + '/' + file
+            case 'image':
+                odaMessage = {
+                    userId: userId,
+                    messagePayload: {
+                        'type': 'text',
+                        'text': `📷 O usuário enviou uma imagem. Você pode acessá-la aqui: ${fileUrl}`
+                    },
+                    profile: {
+                        'whatsAppNumber': userId,
+                        'contactName': contactName
                     }
-                },
-                profile: {
-                    'whatsAppNumber': userId,
-                    'contactName': contactName
-                }
-            };
-            break;
+                };
+                break;
 
-          default:
-            // Unsupported attachment message type
-            console.error('Unsupported attachment message type:', attachment.type);
-            break;
+            case 'video':
+                odaMessage = {
+                    userId: userId,
+                    messagePayload: {
+                        'type': 'text',
+                        'text': `🎥 O usuário enviou um vídeo. Você pode acessá-lo aqui: ${fileUrl}`
+                    },
+                    profile: {
+                        'whatsAppNumber': userId,
+                        'contactName': contactName
+                    }
+                };
+                break;
+
+            case 'document':
+                odaMessage = {
+                    userId: userId,
+                    messagePayload: {
+                        'type': 'text',
+                        'text': `📄 O usuário enviou um documento. Você pode acessá-lo aqui: ${fileUrl}`
+                    },
+                    profile: {
+                        'whatsAppNumber': userId,
+                        'contactName': contactName
+                    }
+                };
+                break;
+
+            default:
+                console.error('Unsupported attachment message type:', attachment.type);
+                return null;
         }
 
         return odaMessage;
