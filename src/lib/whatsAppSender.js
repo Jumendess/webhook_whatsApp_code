@@ -119,7 +119,6 @@ class WhatsAppSender {
     */
     async _downloadAndSaveWhatsAppAttachmentMessage(attachment) {
         try {
-            // Configurações iniciais
             let self = this;
             const config = {
                 method: "get",
@@ -130,52 +129,20 @@ class WhatsAppSender {
                 },
             };
 
-            // Faz a requisição para obter a URL do anexo
+            // Faz a requisição para obter a URL do anexo diretamente do WhatsApp
             const response = await axios.request(config);
 
-            // Faz a requisição para baixar o anexo como stream
-            const attachmentResponse = await axios({
-                method: "get",
-                url: response.data.url,
-                headers: {
-                    Authorization: `Bearer ${self.whatsAppAccessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                responseType: "stream",
-            });
-
-            // Define o nome do arquivo
-            const fileName = `file_${Date.now()}.${mime.extension(attachment.mime_type)}`;
-
-            // Define o caminho da pasta downloads (relativo ao diretório atual)
-            const downloadsFolder = path.join(__dirname, '../../downloads');
-
-            // Verifica e cria a pasta de downloads, se não existir
-            if (!fs.existsSync(downloadsFolder)) {
-                fs.mkdirSync(downloadsFolder, { recursive: true });
-                console.log('Pasta de downloads criada:', downloadsFolder);
+            if (!response.data.url) {
+                console.error("URL do anexo não encontrada!");
+                return null;
             }
 
-            // Define o caminho completo do arquivo
-            const filePath = path.join(downloadsFolder, fileName);
+            console.log(`URL do anexo obtida: ${response.data.url}`);
 
-            // Salva o arquivo no disco
-            const writer = fs.createWriteStream(filePath);
-            attachmentResponse.data.pipe(writer);
-
-            // Retorna uma Promise para garantir que o stream foi finalizado
-            await new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
-
-            console.log(`Arquivo salvo com sucesso em: ${filePath}`);
-
-            // Constroi a URL pública do arquivo para retornar ao ODA
-            const publicUrl = `${process.env.SERVER_URL || 'http://localhost:3000'}/downloads/${fileName}`;
-            return publicUrl;
+            // Retorna a URL direta do anexo para o ODA
+            return response.data.url;
         } catch (error) {
-            console.error('Erro ao baixar e salvar o anexo:', error);
+            console.error("Erro ao obter a URL do anexo:", error);
             return null;
         }
     }
