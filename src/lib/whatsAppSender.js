@@ -19,7 +19,8 @@ class WhatsAppSender {
         this.whatsAppApiVersion = Config.API_VERSION;
         this.whatsAppPhoneNumberId = Config.PHONE_NUMBER_ID;
 
-        this.conversationTranscript = [];
+        // Alterei a transcrição para ser um objeto, com o email como chave
+        this.conversationsTranscripts = {};
         this._setupEvents();
         logger.info('WhatsApp Sender initialized');
     }
@@ -66,8 +67,16 @@ class WhatsAppSender {
             await axios(config).then(response => {
                 self.eventsEmitter.emit(Config.EVENT_WHATSAPP_MESSAGE_DELIVERED, response.data.messages[0].id);
 
-                // Adiciona a mensagem enviada à transcrição
-                self.conversationTranscript.push({ sender: 'Bot', message: message.text });
+                // Recuperar o e-mail (caso esteja disponível no payload da mensagem)
+                const userEmail = message.email || 'unknown'; // Definindo 'unknown' caso não exista e-mail no payload
+
+                // Se não houver transcrição para o e-mail do usuário, crie uma
+                if (!self.conversationsTranscripts[userEmail]) {
+                    self.conversationsTranscripts[userEmail] = [];
+                }
+
+                // Adiciona a mensagem enviada à transcrição do usuário
+                self.conversationsTranscripts[userEmail].push({ sender: 'Bot', message: message.text });
             }).catch(function (error) {
                 throw new Error(error);
             });
@@ -126,8 +135,9 @@ class WhatsAppSender {
         }
     }
 
-    getTranscription() {
-        return this.conversationTranscript;
+    // Método atualizado para obter transcrições específicas por e-mail
+    getTranscription(userEmail) {
+        return this.conversationsTranscripts[userEmail] || [];
     }
 }
 
