@@ -4,7 +4,7 @@ const log4js = require('log4js');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const mime = require('mime-types'); // Correção: usar mime-types em vez de mime-to-extensions
+const mime = require('mime-types');
 let logger = log4js.getLogger('WhatsAppSender');
 logger.level = Config.LOG_LEVEL;
 
@@ -19,6 +19,7 @@ class WhatsAppSender {
         this.whatsAppApiVersion = Config.API_VERSION;
         this.whatsAppPhoneNumberId = Config.PHONE_NUMBER_ID;
 
+        this.conversationTranscript = [];
         this._setupEvents();
         logger.info('WhatsApp Sender initialized');
     }
@@ -64,6 +65,9 @@ class WhatsAppSender {
             };
             await axios(config).then(response => {
                 self.eventsEmitter.emit(Config.EVENT_WHATSAPP_MESSAGE_DELIVERED, response.data.messages[0].id);
+
+                // Adiciona a mensagem enviada à transcrição
+                self.conversationTranscript.push({ sender: 'Bot', message: message.text });
             }).catch(function (error) {
                 throw new Error(error);
             });
@@ -120,6 +124,10 @@ class WhatsAppSender {
             console.error("Erro ao baixar o anexo:", error);
             return null;
         }
+    }
+
+    getTranscription() {
+        return this.conversationTranscript;
     }
 }
 

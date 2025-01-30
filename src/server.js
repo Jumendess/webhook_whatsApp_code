@@ -29,28 +29,31 @@ OracleBot.init(app, {
 // Init WhatsApp Connector
 const whatsApp = new WhatsApp();
 
-// for downloads file - @TODO: check security here
+// Armazena a transcrição das mensagens
+let conversationTranscript = [];
+
+// Middleware para permitir CORS
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 
-// Static file serving (uploads)
+// Servir arquivos estáticos (uploads)
 const staticPath = path.resolve('public', 'uploads');
 app.use('/uploads', express.static(staticPath));
 
 app.get('/', (req, res) => res.send('Oracle Digital Assistant Webhook rodando.'));
 
-// Endpoint for verifying the webhook
+// Endpoint para verificar o webhook
 app.get('/user/message', (req, res) => {
     try {
-        logger.info('verifying the webhook from WhatsApp.');
+        logger.info('Verificando o webhook do WhatsApp.');
         const mode = req.query['hub.mode'];
         const token = req.query['hub.verify_token'];
         const challenge = req.query['hub.challenge'];
         if (mode === "subscribe" && token === Config.VERIFY_TOKEN) {
-            console.log("Webhook verified");
+            console.log("Webhook verificado");
             res.status(200).send(challenge);
         } else {
             res.sendStatus(403);
@@ -61,44 +64,62 @@ app.get('/user/message', (req, res) => {
     }
 });
 
-// Handle incoming messages from WhatsApp
+// Manipular mensagens recebidas do WhatsApp
 app.post('/user/message', async (req, res) => {
     try {
-        logger.info('Received a message from WhatsApp, processing message before sending to ODA.');
+        logger.info('Recebendo mensagem do WhatsApp e processando para envio ao ODA.');
         let response = await whatsApp._receive(req.body.entry);
 
         if (response) {
             if (response.length > 0) {
                 response.forEach(async message => {
                     await webhook.send(message);
-                    logger.info('Message Sent successfully to ODA.');
-                })
+                    logger.info('Mensagem enviada ao ODA com sucesso.');
+
+                    // Salvar a mensagem recebida na transcrição
+                    conversationTranscript.push({
+                        sender: 'Usuário',
+                        message: message.messagePayload.text
+                    });
+                });
             } else {
-                logger.error('Unsupported message type');
-                return res.status(400).send('Unsupported message type');
+                logger.error('Tipo de mensagem não suportado');
+                return res.status(400).send('Tipo de mensagem não suportado');
             }
         }
         res.sendStatus(200);
     } catch (error) {
-      console.error(error);
-      res.sendStatus(500);
+        console.error(error);
+        res.sendStatus(500);
     }
 });
 
-// Handle incoming messages from ODA
+// Manipular mensagens enviadas pelo ODA
 app.post('/bot/message', async (req, res) => {
     try {
-      logger.info('Received a message from ODA, processing message before sending to WhatsApp.');
-      await whatsApp._send(req.body);
-      logger.info('Message Sent successfully to WhatsApp.');
-      res.sendStatus(200);
+        logger.info('Recebendo mensagem do ODA e processando para envio ao WhatsApp.');
+        await whatsApp._send(req.body);
+        logger.info('Mensagem enviada ao WhatsApp com sucesso.');
+
+        // Salvar a mensagem do ODA na transcrição
+        conversationTranscript.push({
+            sender: 'Bot',
+            message: req.body.messagePayload.text
+        });
+
+        res.sendStatus(200);
     } catch (error) {
-      console.log(error);
-      return res.status(500).send(error);
+        console.log(error);
+        return res.status(500).send(error);
     }
 });
 
-// Start the server
+// Endpoint para recuperar a transcrição da conversa
+app.get('/getTranscription', (req, res) => {
+    res.json({ conversation: conversationTranscript });
+});
+
+// Iniciar o servidor
 app.listen(Config.port, () => {
-    logger.info(`Server listening at http://localhost:${Config.port}`);
+    logger.info(`Servidor rodando em http://localhost:${Config.port}`);
 });
